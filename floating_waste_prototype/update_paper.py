@@ -22,19 +22,19 @@ PROJECT_DIR = Path(__file__).parent
 PAPER_PATH = PROJECT_DIR.parent / "YOLO_Based_Detection_of_Floating_Waste.docx"
 PARAGRAPH_ALIASES = {
     "The proposed pipeline receives water-body images": "The implemented prototype receives water-body images",
-    "Partitioning should be performed": "For the pilot, the",
+    "Partitioning should be performed": ("For the pilot, the", "For this "),
     "The baseline is the Ultralytics YOLOv8": "The implemented baseline is Ultralytics YOLOv8n",
     "Evaluation should use the held-out test partition": "The confidence threshold (",
     "This manuscript defines a proposed method": "A working YOLOv8n prototype",
-    "4.2 Expected System Outputs": "4.2 Pilot training and evaluation results",
+    "4.2 Expected System Outputs": "4.2 ",
     "For an input image containing visually distinguishable litter": "The run used",
-    "4.3 Metrics to Report After Implementation": "4.3 Interpretation and limitations of the pilot",
+    "4.3 Metrics to Report After Implementation": "4.3 ",
     "Table 4.2 defines the minimum quantitative measures": "At the selected operating point",
     "Small targets may occupy too few pixels": "The measurements establish that",
     "The proposed methodology should be considered successful": "The annotated examples",
     "This paper has proposed a single-class YOLOv8 workflow": "This study implemented a working single-class",
     "No implementation results are available": "The measured values are preliminary",
-    "Table 4.2: Proposed evaluation measures": "Table 4.2: Quantitative results from the small pilot run",
+    "Table 4.2: Proposed evaluation measures": "Table 4.2: Quantitative results",
 }
 
 
@@ -45,7 +45,10 @@ def load_json(path: Path) -> dict:
 def find_paragraph(document: Document, prefix: str):
     alias = PARAGRAPH_ALIASES.get(prefix)
     for paragraph in document.paragraphs:
-        if paragraph.text.startswith(prefix) or (alias and paragraph.text.startswith(alias)):
+        aliases = (alias,) if isinstance(alias, str) else alias or ()
+        if paragraph.text.startswith(prefix) or any(
+            paragraph.text.startswith(candidate) for candidate in aliases
+        ):
             return paragraph
     raise ValueError(f"Could not find paragraph beginning with {prefix!r}")
 
@@ -86,7 +89,7 @@ def remove_existing_result_figures(document: Document) -> None:
             paragraph._p.getparent().remove(paragraph._p)
 
 
-def format_metrics_chart(metrics: dict, target: Path) -> None:
+def format_metrics_chart(metrics: dict, target: Path, run_label: str) -> None:
     values = [
         metrics["precision"],
         metrics["recall"],
@@ -120,14 +123,14 @@ def format_metrics_chart(metrics: dict, target: Path) -> None:
     axes[1].set_ylim(0, max(1.0, mae * 1.25))
     axes[1].grid(axis="y", alpha=0.25)
     axes[1].text(0, mae + max(0.02, mae * 0.03), f"{mae:.2f}", ha="center", fontsize=9)
-    fig.suptitle("Pilot test-set results (not a full-dataset benchmark)", fontsize=12)
+    fig.suptitle(f"{run_label.title()} test-set results (not a full-dataset benchmark)", fontsize=12)
     fig.tight_layout()
     fig.savefig(target, dpi=180, bbox_inches="tight")
     plt.close(fig)
 
 
-def update_table(table, rows: list[list[str]]) -> None:
-    headers = ("Measure", "Pilot result", "Protocol / scope")
+def update_table(table, rows: list[list[str]], run_label: str) -> None:
+    headers = ("Measure", f"{run_label.title()} result", "Protocol / scope")
     for cell, value in zip(table.rows[0].cells, headers):
         cell.text = value
         for paragraph in cell.paragraphs:
@@ -154,12 +157,12 @@ def main() -> None:
     parser.add_argument(
         "--metrics",
         type=Path,
-        default=PROJECT_DIR / "outputs" / "pilot_metrics.json",
+        default=PROJECT_DIR / "outputs" / "expanded_416" / "metrics.json",
     )
     parser.add_argument(
         "--training-record",
         type=Path,
-        default=PROJECT_DIR / "training_record.json",
+        default=PROJECT_DIR / "training_record_expanded_416.json",
     )
     parser.add_argument("--examples", type=Path)
     args = parser.parse_args()
@@ -185,6 +188,7 @@ def main() -> None:
     train_images = split["train"]["images"]
     val_images = split["val"]["images"]
     test_images = split["test"]["images"]
+    run_label = "expanded group-separated" if train_images > 100 else "pilot"
     train_boxes = split["train"]["boxes"]
     test_boxes = sum(
         len(
@@ -212,7 +216,7 @@ def main() -> None:
     p_pct, r_pct, f_pct = (100 * value for value in (precision, recall, f1))
 
     chart_path = metrics_path.parent / "metrics_chart.png"
-    format_metrics_chart(metrics, chart_path)
+    format_metrics_chart(metrics, chart_path, run_label)
     doc = Document(paper)
     remove_existing_result_figures(doc)
 
@@ -222,13 +226,13 @@ def main() -> None:
             "Floating litter in rivers, lakes, and canals is an environmental monitoring concern because visual "
             "surveys are labor-intensive and provide limited temporal coverage. This study implements a single-class "
             "YOLOv8n object detector that localizes visible floating litter and outputs confidence scores, an "
-            "image-level count, and an annotated image. The pilot uses the TUD-GV detection dataset, whose published "
+            f"image-level count, and an annotated image. The {run_label} uses the TUD-GV detection dataset, whose published "
             "record contains 1,501 RGB images and 8,181 boxes for the single class “litter.” A group-separated subset "
             f"of {train_images} training, {val_images} validation, and {test_images} test images was used; whole "
             "filename experiment groups were kept disjoint. The model was fine-tuned for "
             f"{epochs} epochs at {image_size}px on {device} hardware. The confidence threshold ({confidence_threshold:.3f}) "
             f"and NMS IoU ({nms_iou:.2f}) were selected on the validation subset. One-to-one matching at IoU "
-            f"0.50 on the pilot test subset gave precision {precision:.3f}, recall "
+            f"0.50 on the held-out test subset gave precision {precision:.3f}, recall "
             f"{recall:.3f}, F1 {f1:.3f}, mAP@0.50 {map50:.3f}, mAP@0.50:0.95 {map50_95:.3f}, and count MAE "
             f"{mae:.3f} objects per image. These preliminary results "
             "demonstrate that the end-to-end software pipeline runs; they are not a full-dataset benchmark or "
@@ -241,17 +245,17 @@ def main() -> None:
         (
             "The implemented prototype receives water-body images and produces a per-image set of litter boxes, "
             "confidence values, a count, and an annotated image. Figure 3.1 shows the workflow implemented in "
-            "the prototype. The measured pilot results are reported separately in Section 4."
+            "the prototype. The measured results are reported separately in Section 4."
         ),
     )
     replace_paragraph(
         find_paragraph(doc, "Partitioning should be performed"),
         (
-            f"For the pilot, the {train_images} training images ({train_boxes} boxes) are from the disjoint "
+            f"For this {run_label} evaluation, the {train_images} training images ({train_boxes} boxes) are from the disjoint "
             f"filename group(s) {training_groups}; {val_images} validation images are sampled from "
             f"{validation_groups}; and {test_images} test images ({test_boxes} annotations) are sampled from "
-            f"{test_groups}. Groups do not cross splits. This deliberately small pilot split verifies the pipeline "
-            "but is not a substitute for group-balanced evaluation over the complete 1,501-image dataset."
+            f"{test_groups}. Groups do not cross splits. This exploratory subset verifies the pipeline "
+            "but does not substitute for evaluation over the complete 1,501-image dataset."
         ),
     )
     replace_paragraph(
@@ -262,7 +266,7 @@ def main() -> None:
             f"{epochs} epochs, an input size of {image_size} pixels, batch size {batch}, random seed {seed}, "
             f"and {device} execution with PyTorch {training['torch_version']} and Ultralytics "
             f"{training['ultralytics_version']}. The full run record is saved with the prototype. This is a "
-            "small feasibility run on a selected subset, not a fully tuned benchmark."
+            f"{run_label.capitalize()} run on a selected subset, not a fully tuned benchmark."
         ),
     )
     replace_paragraph(
@@ -283,12 +287,12 @@ def main() -> None:
         find_paragraph(doc, "This manuscript defines a proposed method"),
         (
             "A working YOLOv8n prototype was trained and evaluated on a small, disjoint-group TUD-GV subset. "
-            "The following results are measurements from that run, not projected values. Because the pilot subset "
+            f"The following results are measurements from that run, not projected values. Because the {run_label} subset "
             f"contains {train_images} training images and {test_images} test images, the results are preliminary and should not be read as a "
             "publication-quality estimate of performance across the full dataset."
         ),
     )
-    replace_paragraph(find_paragraph(doc, "4.2 Expected System Outputs"), "4.2 Pilot training and evaluation results", True)
+    replace_paragraph(find_paragraph(doc, "4.2 Expected System Outputs"), f"4.2 {run_label.title()} training and evaluation results", True)
     replace_paragraph(
         find_paragraph(doc, "For an input image containing visually distinguishable litter"),
         (
@@ -303,7 +307,7 @@ def main() -> None:
             f"The run produced TP={tp}, FP={fp}, and FN={fn} across the test images."
         ),
     )
-    replace_paragraph(find_paragraph(doc, "4.3 Metrics to Report After Implementation"), "4.3 Interpretation and limitations of the pilot", True)
+    replace_paragraph(find_paragraph(doc, "4.3 Metrics to Report After Implementation"), f"4.3 Interpretation and limitations of the {run_label}", True)
     replace_paragraph(
         find_paragraph(doc, "Table 4.2 defines the minimum quantitative measures"),
         (
@@ -340,9 +344,9 @@ def main() -> None:
         find_paragraph(doc, "This paper has proposed a single-class YOLOv8 workflow"),
         (
             "This study implemented a working single-class YOLOv8n prototype for visible floating-litter "
-            "detection. It prepares a leakage-aware pilot split from the TUD-GV dataset, fine-tunes pretrained "
+            "detection. It prepares a leakage-aware, group-separated subset of the TUD-GV dataset, fine-tunes pretrained "
             "weights, filters detections, writes bounding boxes and counts, and supplies both a command-line "
-            f"predictor and an image-upload application. On the {test_images}-image pilot test subset, the fixed-threshold "
+            f"predictor and an image-upload application. On the {test_images}-image held-out test subset, the fixed-threshold "
             f"evaluation measured precision {precision:.3f}, recall {recall:.3f}, F1 {f1:.3f}, mAP@0.50 "
             f"{map50:.3f}, mAP@0.50:0.95 {map50_95:.3f}, and count MAE {mae:.3f}. The experiment confirms "
             f"the prototype workflow operates end to end; the small test set "
@@ -361,7 +365,7 @@ def main() -> None:
         ),
     )
 
-    # Replace the former metric-definition table with values from the actual pilot run.
+    # Replace the former metric-definition table with values from this run.
     metric_table = doc.tables[1]
     update_table(
         metric_table,
@@ -378,10 +382,11 @@ def main() -> None:
             ["Training set", f"{train_images} images; {train_boxes} boxes", f"{epochs} epochs, {image_size}px, batch {batch}"],
             ["Test set", f"{test_images} images; {test_boxes} boxes", f"Disjoint group {test_groups}; thresholds fixed from validation"],
         ],
+        run_label,
     )
     replace_paragraph(
         find_paragraph(doc, "Table 4.2: Proposed evaluation measures"),
-        "Table 4.2: Quantitative results from the small pilot run",
+        f"Table 4.2: Quantitative results from the {run_label} run",
         True,
     )
 
@@ -391,7 +396,7 @@ def main() -> None:
     figure.add_run().add_picture(str(chart_path), width=Inches(5.9))
     caption = insert_paragraph_after(
         figure,
-        "Figure 4.2: Pilot test metrics; mAP is computed over the confidence sweep",
+        f"Figure 4.2: {run_label.title()} test metrics; mAP is computed over the confidence sweep",
         centered=True,
     )
     caption.paragraph_format.keep_with_next = True
@@ -400,17 +405,17 @@ def main() -> None:
     examples.add_run().add_picture(str(examples_path), width=Inches(5.9))
     insert_paragraph_after(
         examples,
-        "Figure 4.3: Annotated pilot test images; each panel reports predicted and annotated counts",
+        f"Figure 4.3: Annotated {run_label} test images; each panel reports predicted and annotated counts",
         centered=True,
     )
 
     doc.core_properties.comments = (
-        "Results updated from the reproducible small-subset prototype run; not a full benchmark."
+        f"Results updated from the reproducible {run_label} prototype run; not a full benchmark."
     )
     doc.save(paper)
     print(f"Updated {paper}")
     print(
-        f"Pilot metrics: P={precision:.4f}, R={recall:.4f}, F1={f1:.4f}, "
+        f"Run metrics: P={precision:.4f}, R={recall:.4f}, F1={f1:.4f}, "
         f"count_MAE={mae:.4f}, test_images={test_images}"
     )
 

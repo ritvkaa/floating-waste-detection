@@ -6,9 +6,9 @@ A single-class YOLOv8 prototype that detects visible floating litter in water-bo
 
 - Research paper: [`YOLO_Based_Detection_of_Floating_Waste.docx`](./YOLO_Based_Detection_of_Floating_Waste.docx)
 - Prototype source, setup, and run instructions: [`floating_waste_prototype/README.md`](./floating_waste_prototype/README.md)
-- Trained pilot weights: [`floating_waste_prototype/weights/floating_litter_yolov8n.pt`](./floating_waste_prototype/weights/floating_litter_yolov8n.pt)
-- Pilot evaluation and examples: [`floating_waste_prototype/outputs/`](./floating_waste_prototype/outputs/)
+- Expanded-run weights: [`floating_waste_prototype/weights/floating_litter_yolov8n_expanded_416.pt`](./floating_waste_prototype/weights/floating_litter_yolov8n_expanded_416.pt)
+- Expanded evaluation metrics, chart, and examples: [`floating_waste_prototype/outputs/expanded_416/`](./floating_waste_prototype/outputs/expanded_416/)
 
-The initial CPU pilot used 54 training images, 20 validation images, and 20 held-out test images from disjoint TUD-GV experiment groups. Its measured mAP@0.50 was 0.636. This is a feasibility result, not a full-dataset benchmark; the paper reports the split and limitations.
+The expanded CPU run used 321 training, 67 validation, and 70 held-out test images from disjoint TUD-GV experiment groups. It measured precision 0.769, recall 0.903, F1 0.831, mAP@0.50 0.883, mAP@0.50:0.95 0.595, and count MAE 0.829 objects/image. The earlier 54/20/20-image pilot remains available as a separate software-feasibility result. Neither run is a full-dataset benchmark; see the paper for the evaluation protocol and limitations.
 
 Raw dataset files and Ultralytics training caches are excluded from Git. Run the prototype instructions to download the dataset and reproduce the experiment.

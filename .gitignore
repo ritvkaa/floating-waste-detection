@@ -6,4 +6,6 @@ floating_waste_prototype/.venv/
 floating_waste_prototype/weights/yolov8n.pt
 floating_waste_prototype/outputs/test_annotated/
 floating_waste_prototype/outputs/*_predictions.json
+floating_waste_prototype/outputs/*/test_annotated/
+floating_waste_prototype/outputs/*/*_predictions.json
 *.py[cod]

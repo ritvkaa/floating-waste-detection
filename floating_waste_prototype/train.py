@@ -1,4 +1,4 @@
-"""Fine-tune a small YOLOv8 baseline on the prepared TUD-GV pilot split."""
+"""Fine-tune a YOLOv8 baseline on a prepared TUD-GV dataset split."""
 
 from __future__ import annotations
 

@@ -1,0 +1,22 @@
+{
+  "weights": "C:\\Users\\KIIT\\Downloads\\ipa_rp\\floating_waste_prototype\\weights\\floating_litter_yolov8n_expanded_416.pt",
+  "dataset": "C:\\Users\\KIIT\\Downloads\\ipa_rp\\floating_waste_prototype\\data\\tud_gv_expanded",
+  "test_images": 70,
+  "confidence_threshold": 0.25,
+  "nms_iou_threshold": 0.45,
+  "iou_match_threshold": 0.5,
+  "validation_selected_f1": 0.785377358490566,
+  "validation_selected_precision": 0.7207792207792207,
+  "validation_selected_recall": 0.8626943005181347,
+  "tp": 260,
+  "fp": 78,
+  "fn": 28,
+  "precision": 0.7692307692307693,
+  "recall": 0.9027777777777778,
+  "f1": 0.8306709265175719,
+  "count_mae": 0.8285714285714286,
+  "map50": 0.883002989051731,
+  "map50_95": 0.5953257068657204,
+  "mean_predict_annotate_seconds_per_image": 0.07386231142715717,
+  "metric_scope": "confidence and NMS selected on validation by F1; test metrics are held out; fixed-threshold, one-to-one box matching at IoU 0.50; timing excludes image decoding and model startup"
+}

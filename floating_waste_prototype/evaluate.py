@@ -1,4 +1,4 @@
-"""Evaluate one fixed pilot test split and report detection and count metrics."""
+"""Evaluate one prepared test split and report detection and count metrics."""
 
 from __future__ import annotations
 

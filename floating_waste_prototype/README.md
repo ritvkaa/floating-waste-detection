@@ -26,16 +26,20 @@ The script obtains selected images and annotations from the official TUD-GV Zeno
 - Validation: all images in `exp16`
 - Test: all images in `exp23`
 
-This expanded experiment uses several hundred training images, not the complete 1,501-image release. It aims to improve on the initial 54-image software-feasibility pilot while keeping an independent experiment group for testing. The dataset is CC BY 4.0. Cite the associated paper and dataset (DOI `10.1016/j.watres.2024.122405` and `10.5281/zenodo.13730228`) when redistributing or publishing results.
+This expanded experiment uses 321 training, 67 validation, and 70 test images, not the complete 1,501-image release. The earlier 54-image pilot was used for software checks; results below and in the paper refer to the expanded split. The dataset is CC BY 4.0. Cite the associated paper and dataset (DOI `10.1016/j.watres.2024.122405` and `10.5281/zenodo.13730228`) when redistributing or publishing results.
 
 ## Train and evaluate
 
 ```powershell
-python train.py --data data\tud_gv_expanded\dataset.yaml --epochs 8 --image-size 416 --batch 4 --device cpu --name expanded_416
+python train.py --data data\tud_gv_expanded\dataset.yaml --epochs 15 --image-size 416 --batch 4 --device cpu --name expanded_416
 python evaluate.py --data data\tud_gv_expanded\dataset.yaml --weights weights\floating_litter_yolov8n_expanded_416.pt --image-size 416 --batch 4 --device cpu --output-name expanded_416
 ```
 
-Training starts from Ultralytics `yolov8n.pt`, saves the fine-tuned weights and run record, and evaluation selects confidence and NMS thresholds on validation before testing. Evaluation reports fixed-threshold precision/recall/F1 and count MAE plus test mAP. The initial 54/20/20-image feasibility pilot remains in the paper history; the expanded run is evaluated on all images in the held-out test experiment group. Treat both as preliminary, and do not compare them without noting their different split sizes.
+Training starts from Ultralytics `yolov8n.pt`, saves the fine-tuned weights and run record, and evaluation selects confidence and NMS thresholds on validation before testing. Evaluation reports fixed-threshold precision/recall/F1 and count MAE plus test mAP. This expanded run is evaluated on all images in the held-out test experiment group.
+
+## Expanded-run results
+
+On the held-out `exp23` group (70 images, 288 annotations), the run measured precision 0.769, recall 0.903, F1 0.831, mAP@0.50 0.883, mAP@0.50:0.95 0.595, and count MAE 0.829 objects/image. The confidence threshold (0.25) and NMS IoU (0.45) were selected on the `exp16` validation group. These are measurements from a single held-out experiment group—not a complete-dataset benchmark or an estimate of performance on other waterways.
 
 ## Run the application
 

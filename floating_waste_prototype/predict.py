@@ -18,7 +18,7 @@ def main() -> None:
     parser.add_argument(
         "--weights",
         type=Path,
-        default=project_dir / "weights" / "floating_litter_yolov8n.pt",
+        default=project_dir / "weights" / "floating_litter_yolov8n_expanded_416.pt",
     )
     parser.add_argument("--confidence", type=float)
     parser.add_argument("--image-size", type=int)
@@ -28,7 +28,7 @@ def main() -> None:
     args = parser.parse_args()
     if not args.image.is_file():
         parser.error(f"Input image does not exist: {args.image}")
-    config_path = project_dir / "outputs" / "deployment_config.json"
+    config_path = project_dir / "outputs" / "expanded_416" / "deployment_config.json"
     deployment = (
         json.loads(config_path.read_text(encoding="utf-8"))
         if config_path.is_file()

@@ -15,8 +15,8 @@ from inference import load_model, predict_image
 
 
 PROJECT_DIR = Path(__file__).parent
-WEIGHTS = PROJECT_DIR / "weights" / "floating_litter_yolov8n.pt"
-DEPLOYMENT_CONFIG = PROJECT_DIR / "outputs" / "deployment_config.json"
+WEIGHTS = PROJECT_DIR / "weights" / "floating_litter_yolov8n_expanded_416.pt"
+DEPLOYMENT_CONFIG = PROJECT_DIR / "outputs" / "expanded_416" / "deployment_config.json"
 DEPLOYMENT_SETTINGS = (
     json.loads(DEPLOYMENT_CONFIG.read_text(encoding="utf-8"))
     if DEPLOYMENT_CONFIG.is_file()
