@@ -1,0 +1,52 @@
+{
+  "completed_utc": "2026-11-03T08:28:03.788824+00:00",
+  "ultralytics_version": "8.4.199",
+  "torch_version": "2.14.1+cpu",
+  "python_version": "3.10.11",
+  "processor": "AMD64 Family 25 Model 117 Stepping 2, AuthenticAMD",
+  "device": "cpu",
+  "cuda_available": false,
+  "seed": 2026,
+  "epochs_requested": 3,
+  "image_size": 320,
+  "batch_size": 4,
+  "dataset": {
+    "source": "TUD-GV Dataset for Floating Litter Detection (object detection task)",
+    "record_url": "https://zenodo.org/records/13730228",
+    "doi": "10.5281/zenodo.13730228",
+    "split_method": "disjoint filename experiment groups; validation and test images are deterministically sampled within their groups",
+    "groups": {
+      "train": [
+        "exp14"
+      ],
+      "val": [
+        "exp16"
+      ],
+      "test": [
+        "exp23"
+      ]
+    },
+    "image_limits": {
+      "train": null,
+      "val": 20,
+      "test": 20
+    },
+    "splits": {
+      "train": {
+        "images": 54,
+        "boxes": 220
+      },
+      "val": {
+        "images": 20,
+        "boxes": 115
+      },
+      "test": {
+        "images": 20,
+        "boxes": 83
+      }
+    }
+  },
+  "run_directory": "C:\\Users\\KIIT\\Downloads\\ipa_rp\\floating_waste_prototype\\runs\\tud_gv_pilot",
+  "weights": "C:\\Users\\KIIT\\Downloads\\ipa_rp\\floating_waste_prototype\\weights\\floating_litter_yolov8n.pt",
+  "training_wall_seconds": 25.9
+}

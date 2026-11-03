@@ -1,0 +1,5 @@
+{
+  "confidence": 0.975,
+  "nms_iou": 0.5,
+  "image_size": 320
+}

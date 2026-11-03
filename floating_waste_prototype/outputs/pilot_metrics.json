@@ -1,0 +1,22 @@
+{
+  "weights": "C:\\Users\\KIIT\\Downloads\\ipa_rp\\floating_waste_prototype\\weights\\floating_litter_yolov8n.pt",
+  "dataset": "C:\\Users\\KIIT\\Downloads\\ipa_rp\\floating_waste_prototype\\data\\tud_gv_pilot",
+  "test_images": 20,
+  "confidence_threshold": 0.975,
+  "nms_iou_threshold": 0.5,
+  "iou_match_threshold": 0.5,
+  "validation_selected_f1": 0.5393258426966292,
+  "validation_selected_precision": 0.7619047619047619,
+  "validation_selected_recall": 0.41739130434782606,
+  "tp": 67,
+  "fp": 47,
+  "fn": 16,
+  "precision": 0.5877192982456141,
+  "recall": 0.8072289156626506,
+  "f1": 0.6802030456852792,
+  "count_mae": 1.55,
+  "map50": 0.6361367799236755,
+  "map50_95": 0.2856141459902194,
+  "mean_predict_annotate_seconds_per_image": 0.046943904999352526,
+  "metric_scope": "confidence and NMS selected on validation by F1; test metrics are held out; fixed-threshold, one-to-one box matching at IoU 0.50; timing excludes image decoding and model startup"
+}

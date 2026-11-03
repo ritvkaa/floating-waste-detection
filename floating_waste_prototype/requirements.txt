@@ -1,0 +1,4 @@
+ultralytics==8.4.199
+remotezip==0.12.6
+streamlit>=1.30
+PyYAML>=6.0
