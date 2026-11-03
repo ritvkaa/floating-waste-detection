@@ -111,7 +111,7 @@ def format_metrics_chart(metrics: dict, target: Path, run_label: str) -> None:
         axes[0].text(
             bar.get_x() + bar.get_width() / 2,
             bar.get_height() + 2,
-            f"{value:.2f}",
+            f"{100 * value:.1f}%",
             ha="center",
             va="bottom",
             fontsize=9,
@@ -180,7 +180,7 @@ def main() -> None:
     training = load_json(training_path)
     manifest = load_json(manifest_path)
     split = manifest["splits"]
-    device = training["device"]
+    device = training["device"].upper()
     image_size = training["image_size"]
     epochs = training["epochs_requested"]
     batch = training["batch_size"]
@@ -188,7 +188,7 @@ def main() -> None:
     train_images = split["train"]["images"]
     val_images = split["val"]["images"]
     test_images = split["test"]["images"]
-    run_label = "expanded group-separated" if train_images > 100 else "pilot"
+    run_label = "expanded run" if train_images > 100 else "pilot"
     train_boxes = split["train"]["boxes"]
     test_boxes = sum(
         len(
@@ -226,16 +226,17 @@ def main() -> None:
             "Floating litter in rivers, lakes, and canals is an environmental monitoring concern because visual "
             "surveys are labor-intensive and provide limited temporal coverage. This study implements a single-class "
             "YOLOv8n object detector that localizes visible floating litter and outputs confidence scores, an "
-            f"image-level count, and an annotated image. The {run_label} uses the TUD-GV detection dataset, whose published "
+            f"image-level count, and an annotated image. The study uses the TUD-GV detection dataset, whose published "
             "record contains 1,501 RGB images and 8,181 boxes for the single class “litter.” A group-separated subset "
             f"of {train_images} training, {val_images} validation, and {test_images} test images was used; whole "
             "filename experiment groups were kept disjoint. The model was fine-tuned for "
             f"{epochs} epochs at {image_size}px on {device} hardware. The confidence threshold ({confidence_threshold:.3f}) "
-            f"and NMS IoU ({nms_iou:.2f}) were selected on the validation subset. One-to-one matching at IoU "
-            f"0.50 on the held-out test subset gave precision {precision:.3f}, recall "
-            f"{recall:.3f}, F1 {f1:.3f}, mAP@0.50 {map50:.3f}, mAP@0.50:0.95 {map50_95:.3f}, and count MAE "
-            f"{mae:.3f} objects per image. These preliminary results "
-            "demonstrate that the end-to-end software pipeline runs; they are not a full-dataset benchmark or "
+            f"and NMS IoU ({nms_iou:.2f}) were selected on the validation subset. Fixed-threshold, one-to-one matching "
+            f"at IoU 0.50 on the held-out test subset gave precision {precision:.3f}, recall {recall:.3f}, F1 {f1:.3f}, "
+            f"and count MAE {mae:.3f} objects per image. Separately, the test-set confidence-sweep evaluation gave "
+            f"mAP@0.50 {map50:.3f} ({map50:.1%}) and mAP@0.50:0.95 {map50_95:.3f}. These preliminary results "
+            "are measurements from one held-out experiment group. The 88.3% figure is mAP@0.50, not classification "
+            "accuracy; these results are not a full-dataset benchmark or "
             "evidence of generalization to other waterways. No material-specific plastic classification is performed."
         ),
     )
@@ -251,10 +252,10 @@ def main() -> None:
     replace_paragraph(
         find_paragraph(doc, "Partitioning should be performed"),
         (
-            f"For this {run_label} evaluation, the {train_images} training images ({train_boxes} boxes) are from the disjoint "
+            f"For this evaluation, the {train_images} training images ({train_boxes} boxes) are from the disjoint "
             f"filename group(s) {training_groups}; {val_images} validation images are sampled from "
             f"{validation_groups}; and {test_images} test images ({test_boxes} annotations) are sampled from "
-            f"{test_groups}. Groups do not cross splits. This exploratory subset verifies the pipeline "
+            f"{test_groups}. Groups do not cross splits. This exploratory subset evaluates the pipeline "
             "but does not substitute for evaluation over the complete 1,501-image dataset."
         ),
     )
@@ -265,8 +266,8 @@ def main() -> None:
             "yolov8n.pt detection checkpoint and fine-tuned on the single target class “litter.” The run used "
             f"{epochs} epochs, an input size of {image_size} pixels, batch size {batch}, random seed {seed}, "
             f"and {device} execution with PyTorch {training['torch_version']} and Ultralytics "
-            f"{training['ultralytics_version']}. The full run record is saved with the prototype. This is a "
-            f"{run_label.capitalize()} run on a selected subset, not a fully tuned benchmark."
+            f"{training['ultralytics_version']}. The full run record is saved with the prototype. This {run_label} "
+            "uses a selected subset and is not a fully tuned benchmark."
         ),
     )
     replace_paragraph(
@@ -286,7 +287,7 @@ def main() -> None:
     replace_paragraph(
         find_paragraph(doc, "This manuscript defines a proposed method"),
         (
-            "A working YOLOv8n prototype was trained and evaluated on a small, disjoint-group TUD-GV subset. "
+            "A working YOLOv8n prototype was trained and evaluated on a disjoint-group TUD-GV subset. "
             f"The following results are measurements from that run, not projected values. Because the {run_label} subset "
             f"contains {train_images} training images and {test_images} test images, the results are preliminary and should not be read as a "
             "publication-quality estimate of performance across the full dataset."
@@ -312,10 +313,12 @@ def main() -> None:
         find_paragraph(doc, "Table 4.2 defines the minimum quantitative measures"),
         (
             f"At the selected operating point, precision was {p_pct:.1f}%, recall was {r_pct:.1f}%, and F1 "
-            f"was {f_pct:.1f}%. The image-level count MAE was {mae:.2f} objects per image. Mean per-image "
+            f"was {f_pct:.1f}%. The detector achieved mAP@0.50 of {map50:.3f} ({map50:.1%}); this object-detection "
+            "metric is not classification accuracy. The image-level count MAE was "
+            f"{mae:.2f} objects per image. Mean per-image "
             f"prediction-and-annotation time after warm-up was {latency:.4f} s/image "
             f"({1 / latency:.1f} images/s) on the CPU; this excludes file decoding, application startup, "
-            f"and UI overhead. Test-set mAP@0.50 was {map50:.3f}, and mAP@0.50:0.95 was {map50_95:.3f}. "
+            f"and UI overhead. Test-set mAP@0.50:0.95 was {map50_95:.3f}. "
             "Figure 4.3 shows annotated examples with predicted and ground-truth counts. The small test sample "
             "makes these values sensitive to individual images; no confidence intervals are reported."
         ),
@@ -348,7 +351,8 @@ def main() -> None:
             "weights, filters detections, writes bounding boxes and counts, and supplies both a command-line "
             f"predictor and an image-upload application. On the {test_images}-image held-out test subset, the fixed-threshold "
             f"evaluation measured precision {precision:.3f}, recall {recall:.3f}, F1 {f1:.3f}, mAP@0.50 "
-            f"{map50:.3f}, mAP@0.50:0.95 {map50_95:.3f}, and count MAE {mae:.3f}. The experiment confirms "
+            f"{map50:.3f} ({map50:.1%}), mAP@0.50:0.95 {map50_95:.3f}, and count MAE {mae:.3f}. "
+            f"The mAP@0.50 value is an object-detection metric, not classification accuracy. The experiment confirms "
             f"the prototype workflow operates end to end; the small test set "
             "does not establish general performance."
         ),
@@ -373,7 +377,7 @@ def main() -> None:
             ["Precision", f"{precision:.3f} ({p_pct:.1f}%)", f"TP / (TP + FP), confidence >= {confidence_threshold:.3f}"],
             ["Recall", f"{recall:.3f} ({r_pct:.1f}%)", "TP / (TP + FN), IoU matching threshold 0.50"],
             ["F1 score", f"{f1:.3f} ({f_pct:.1f}%)", "Harmonic mean of micro-averaged precision and recall"],
-            ["mAP@0.50", f"{map50:.3f}", "Test split; confidence sweep; NMS IoU 0.70"],
+            ["mAP@0.50", f"{map50:.3f} ({map50:.1%})", "Test split; confidence sweep; NMS IoU 0.70"],
             ["mAP@0.50:0.95", f"{map50_95:.3f}", "Test split; IoU thresholds 0.50 through 0.95"],
             ["TP / FP / FN", f"{tp} / {fp} / {fn}", f"Across {test_images} held-out test images"],
             ["Count MAE", f"{mae:.3f} objects/image", "Mean absolute predicted-vs-annotated count difference"],
